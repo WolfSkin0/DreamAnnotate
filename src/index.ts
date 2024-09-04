@@ -22,7 +22,6 @@ SOFTWARE.
 */
 
 import fs from "fs";
-import os from "os";
 import * as core from "@actions/core"
 
 export interface Match {
@@ -41,8 +40,22 @@ try {
 
     const matches = Array.from(data.matchAll(regex), m => m.groups) as unknown as Match[];
     for(const match of matches) {
-        process.stdout.write(`::${match.type} file=${match.filename},line=${match.line},col=${match.column}::${match.message}${os.EOL}`)
+        const annotationOptions = {
+            title: `DreamChecker ${match.type}`,
+            file: match.filename,
+            startLine: parseInt(match.line, 10),
+            endLine: parseInt(match.line, 10),
+            startColumn: parseInt(match.column, 10),
+            endColumn: parseInt(match.column, 10)
+        };
+
+        if (match.type === "error") {
+            core.error(match.message, annotationOptions);
+        } else {
+            core.warning(match.message, annotationOptions);
+        }
     }
 } catch (error) {
-    core.setFailed(error.message)
+    core.setFailed(error.message);
 }
+
